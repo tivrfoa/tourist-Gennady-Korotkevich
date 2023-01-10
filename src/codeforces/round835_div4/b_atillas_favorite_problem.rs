@@ -38,9 +38,9 @@ fn main() {
 
 #[test]
 fn test_sample() {
-    let fr = File::open("test_inputs/codeforces/round835_div4/b.in").unwrap();
+    let fr = File::open("tests_in_out/codeforces/round835_div4/b.in").unwrap();
     let fr = BufReader::new(fr);
-    let out_file = File::open("test_inputs/codeforces/round835_div4/b.out").unwrap();
+    let out_file = File::open("tests_in_out/codeforces/round835_div4/b.out").unwrap();
     let mut solution = Solution::new(fr, out_file);
 
     let t = solution.scan.token::<usize>();
