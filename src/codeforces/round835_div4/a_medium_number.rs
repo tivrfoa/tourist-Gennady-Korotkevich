@@ -4,9 +4,9 @@ use io::Write;
 use std::{io, str};
 
 fn swap(a: &mut u8, b: &mut u8) {
-	let tmp = *a;
-	*a = *b;
-	*b = tmp;
+    let tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
 
 fn main() {
@@ -15,28 +15,34 @@ fn main() {
     let mut out = io::BufWriter::new(stdout.lock());
     let t = scan.token::<usize>();
 
-	for _ in 0..t {
-		let (mut a, mut b, mut c) = get_3_nums::<u8>(&mut scan);
-		if a > b { swap(&mut a, &mut b); }
-		if a > c { swap(&mut a, &mut c); }
-		if b > c { swap(&mut b, &mut c); }
+    for _ in 0..t {
+        let (mut a, mut b, mut c) = get_3_nums::<u8>(&mut scan);
+        if a > b {
+            swap(&mut a, &mut b);
+        }
+        if a > c {
+            swap(&mut a, &mut c);
+        }
+        if b > c {
+            swap(&mut b, &mut c);
+        }
         writeln!(out, "{}", b);
-	}
+    }
 }
 
 #[allow(dead_code)]
 fn get_2_nums<T: str::FromStr>(scan: &mut UnsafeScanner<io::StdinLock>) -> (T, T) {
-	let a = scan.token::<T>();
-	let b = scan.token::<T>();
-	(a, b)
+    let a = scan.token::<T>();
+    let b = scan.token::<T>();
+    (a, b)
 }
 
 #[allow(dead_code)]
 fn get_3_nums<T: str::FromStr>(scan: &mut UnsafeScanner<io::StdinLock>) -> (T, T, T) {
-	let a = scan.token::<T>();
-	let b = scan.token::<T>();
-	let c = scan.token::<T>();
-	(a, b, c)
+    let a = scan.token::<T>();
+    let b = scan.token::<T>();
+    let c = scan.token::<T>();
+    (a, b, c)
 }
 
 pub struct UnsafeScanner<R> {

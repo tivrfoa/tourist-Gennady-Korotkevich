@@ -1,40 +1,33 @@
-use io::Write;
-use std::io::prelude::*;
-use std::{io::{self, StdinLock, StdoutLock, BufWriter, BufReader}, str, fs::File};
+use std::{
+    fs::File,
+    io::{self, BufReader, BufWriter, StdinLock, StdoutLock, BufRead, Write},
+    str,
+};
 
-struct Solution<'a, R> {
+struct Solution<R, W: Write> {
     scan: UnsafeScanner<R>,
-    out: BufWriter<StdoutLock<'a>>,
+    out: BufWriter<W>,
 }
 
-impl<R: io::BufRead> Solution<'_, R> {
-    fn new(reader: R) -> Self {
-        let mut scan = UnsafeScanner::new(reader);
-        let mut out = io::BufWriter::new(io::stdout().lock());
+impl<R: BufRead, W: Write> Solution<R, W> {
+    fn new(reader: R, writer: W) -> Self {
+        let scan = UnsafeScanner::new(reader);
+        let out = BufWriter::new(writer);
 
-        Self {
-            scan,
-            out
-        }
+        Self { scan, out }
     }
 
     fn solve(&mut self) -> u8 {
         let _len: u8 = self.scan.token();
-        let s: String = self.scan.token();
-        let mut max = 1;
-        for c in s.chars() {
-            let pos = c as u8 - b'a' + 1;
-            if pos > max { max = pos; }
-        }
-        
-        max
+        let c: char = self.scan.token::<String>().chars().max().unwrap();
+        c as u8 - b'a' + 1
     }
 }
 
-
-
 fn main() {
-    let mut solution: Solution<StdinLock> = Solution::new(io::stdin().lock());
+    let reader = io::stdin().lock();
+    let writer = io::stdout().lock();
+    let mut solution: Solution<StdinLock, StdoutLock> = Solution::new(reader, writer);
     let t = solution.scan.token::<usize>();
 
     for _ in 0..t {
@@ -45,9 +38,10 @@ fn main() {
 
 #[test]
 fn test_sample() {
-    let f = File::open("test_inputs/codeforces/round835_div4/b.in").unwrap();
-    let f = BufReader::new(f);
-    let mut solution: Solution<BufReader<File>> = Solution::new(f);
+    let fr = File::open("test_inputs/codeforces/round835_div4/b.in").unwrap();
+    let fr = BufReader::new(fr);
+    let out_file = File::open("test_inputs/codeforces/round835_div4/b.out").unwrap();
+    let mut solution = Solution::new(fr, out_file);
 
     let t = solution.scan.token::<usize>();
 
@@ -59,17 +53,17 @@ fn test_sample() {
 
 #[allow(dead_code)]
 fn get_2_nums<T: str::FromStr>(scan: &mut UnsafeScanner<io::StdinLock>) -> (T, T) {
-	let a = scan.token::<T>();
-	let b = scan.token::<T>();
-	(a, b)
+    let a = scan.token::<T>();
+    let b = scan.token::<T>();
+    (a, b)
 }
 
 #[allow(dead_code)]
 fn get_3_nums<T: str::FromStr>(scan: &mut UnsafeScanner<io::StdinLock>) -> (T, T, T) {
-	let a = scan.token::<T>();
-	let b = scan.token::<T>();
-	let c = scan.token::<T>();
-	(a, b, c)
+    let a = scan.token::<T>();
+    let b = scan.token::<T>();
+    let c = scan.token::<T>();
+    (a, b, c)
 }
 
 pub struct UnsafeScanner<R> {
