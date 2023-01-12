@@ -12,19 +12,8 @@ We only need to check if it's better to:
   - change first 0 to 1;
   - change last 1 to 0.
 
+I'll use zero suffix table to avoid timeout
 */
-
-fn count_pairs(nums: &Vec<u8>) -> u32 {
-    let mut qt = 0;
-    for (i, a) in nums.iter().enumerate().take(nums.len() - 1) {
-        for b in nums.iter().skip(i) {
-            if a > b {
-                qt += 1;
-            }
-        }
-    }
-    qt
-}
 
 pub struct Solution<R, W: Write> {
     scan: UnsafeScanner<R>,
@@ -41,27 +30,77 @@ impl<R: BufRead, W: Write> Solution<R, W> {
 
     fn solve(&mut self) {
         let len: usize = self.scan.token();
-        let mut nums: Vec<u8> = self.scan.read_nums();
-        let mut max_pairs = count_pairs(&nums);
+        let nums: Vec<u8> = self.scan.read_nums();
+        if len == 1 {
+            writeln!(self.out, "{}", 0);
+            return;
+        }
+        if len == 2 {
+            if nums[0] == 0 && nums[1] == 1 {
+                writeln!(self.out, "{}", 0);
+            } else {
+                writeln!(self.out, "{}", 1);
+            }
+            return;
+        }
+        let mut zeros_suffix: Vec<usize> = vec![0; len];
+
+        for (i, _) in nums.iter().enumerate().rev() {
+            if i < len - 1 {
+                zeros_suffix[i] = zeros_suffix[i + 1];
+            }
+            zeros_suffix[i] += if nums[i] == 0 { 1 } else { 0 };
+        }
+
+        // dbg!(&zeros_suffix);
+
+        let mut original_pairs: usize = 0;
+        for i in 0..len - 1 {
+            if nums[i] == 1 {
+                original_pairs += zeros_suffix[i + 1];
+            }
+        }
+         
+        let mut max_pairs = original_pairs;
 
         // change first 0 to 1
         if let Some(idx) = nums.iter().position(|n| *n == 0) {
-            nums[idx] = 1;
-            let tmp = count_pairs(&nums);
-            if tmp > max_pairs {
-                max_pairs = tmp;
+            if idx == len - 1 {
+                // no point in change last 0 to 1
+                // change len - 2 to 0 and return
+                writeln!(self.out, "{}", (len - 2) * 2);
+                return;
             }
-            nums[idx] = 0;
+            // count how many ones there are before idx
+            let ones = nums.iter().take(idx + 1).filter(|n| **n == 1).count();
+            let pairs = original_pairs - ones + zeros_suffix[idx + 1];
+            if pairs > max_pairs {
+                max_pairs = pairs;
+            }
+        } else {
+            // no zeros, so just change last 1 to 0
+            writeln!(self.out, "{}", len - 1);
+            return;
         }
 
         // change last 1 to 0
         if let Some(idx) = nums.iter().rposition(|n| *n == 1) {
-            nums[idx] = 0;
-            let tmp = count_pairs(&nums);
-            if tmp > max_pairs {
-                max_pairs = tmp;
+            if idx == 0 {
+                let pairs = original_pairs - 1 + zeros_suffix[2];
+                writeln!(self.out, "{}", pairs);
+                return;
             }
-            nums[idx] = 1;
+            // count how many ones there are before idx
+            let ones = nums.iter().take(idx).filter(|n| **n == 1).count();
+            let to_remove = if idx + 1 == len { 0 } else { zeros_suffix[idx + 1] };
+            let pairs = original_pairs + ones - to_remove;
+            if pairs > max_pairs {
+                max_pairs = pairs;
+            }
+        } else {
+            // no ones, so just change first 0 to 1
+            writeln!(self.out, "{}", len - 1);
+            return;
         }
 
         writeln!(self.out, "{}", max_pairs);
