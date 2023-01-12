@@ -5,16 +5,6 @@ use std::{
     str::{self, FromStr},
 };
 
-/*
-
-We only need to check if it's better to:
-  - don't flip anything;
-  - change first 0 to 1;
-  - change last 1 to 0.
-
-I'll use zero suffix table to avoid timeout
-*/
-
 pub struct Solution<R, W: Write> {
     scan: UnsafeScanner<R>,
     out: BufWriter<W>,
