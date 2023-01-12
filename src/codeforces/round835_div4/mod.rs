@@ -3,4 +3,5 @@
 // mod c_advantage;
 // mod c_niyaznigmatul;
 // mod d_challenging_valleys;
-mod e_binary_inversions;
+// mod e_binary_inversions;
+mod f_quests;
