@@ -37,14 +37,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         }
 
         let d = bfs(&g, a, |u| u != b);
-
-        let mut all: HashSet<i32> = HashSet::new();
-        for i in 0..n {
-            if d[i] != -1 {
-                all.insert(d[i]);
-            }
-        }
-
+        let all: HashSet<i32> = HashSet::from_iter(d.into_iter().filter(|n| *n != -1));
         let d = bfs(&g, b, |_| true);
 
         let mut ok = false;
