@@ -36,22 +36,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
             g[y].push((x, w));
         }
 
-        let mut d: Vec<i32> = vec![-1; n];
-        let mut que: Vec<usize> = vec![a];
-        d[a] = 0;
-
-        let mut it = 0;
-        while it < que.len() {
-            for p in &g[que[it]] {
-                let u = p.0;
-                if d[u] == -1 && u != b {
-                    que.push(u);
-                    d[u] = d[que[it]] ^ p.1;
-                }
-            }
-
-            it += 1;
-        }
+        let d = bfs(&g, a, |u| u != b);
 
         let mut all: HashSet<i32> = HashSet::new();
         for i in 0..n {
@@ -60,22 +45,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
             }
         }
 
-        let mut d: Vec<i32> = vec![-1; n];
-        let mut que: Vec<usize> = vec![b];
-        d[b] = 0;
-
-        let mut it = 0;
-        while it < que.len() {
-            for p in &g[que[it]] {
-                let u = p.0;
-                if d[u] == -1 {
-                    que.push(u);
-                    d[u] = d[que[it]] ^ p.1;
-                }
-            }
-
-            it += 1;
-        }
+        let d = bfs(&g, b, |_| true);
 
         let mut ok = false;
         for i in 0..n {
@@ -91,7 +61,9 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     }
 }
 
-fn _bfs(g: &[Vec<(usize, i32)>], from: usize, check_from: bool) -> Vec<i32> {
+fn bfs<T>(g: &[Vec<(usize, i32)>], from: usize,
+        check_from: T) -> Vec<i32>
+        where T: Fn(usize) -> bool {
     let mut d: Vec<i32> = vec![-1; g.len()];
     let mut que: Vec<usize> = vec![from];
     d[from] = 0;
@@ -100,7 +72,7 @@ fn _bfs(g: &[Vec<(usize, i32)>], from: usize, check_from: bool) -> Vec<i32> {
     while it < que.len() {
         for p in &g[que[it]] {
             let u = p.0;
-            if d[u] == -1 && (!check_from || u != from) {
+            if d[u] == -1 && check_from(u) {
                 que.push(u);
                 d[u] = d[que[it]] ^ p.1;
             }
@@ -119,7 +91,7 @@ fn main() {
     let t = solution.scan.token::<usize>();
 
     for _ in 0..t {
-        let ans = solution.solve();
+        solution.solve();
     }
 }
 
@@ -133,7 +105,7 @@ fn test_sample() {
     let t = solution.scan.token::<usize>();
 
     for _ in 0..t {
-        let ans = solution.solve();
+        solution.solve();
     }
 }
 
