@@ -25,12 +25,11 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     fn solve(&mut self) {
         let mut ans: Vec<usize> = vec![];
         let N: usize = self.scan.token();
-        let mut ans: Vec<usize> = vec![];
         let mut dp: Vec<[bool; 32]> = vec![[false; 32]; N];
         let mut stor: Vec<[bool; 32]> = vec![[false; 32]; N];
         let mut adj: Vec<Vec<usize>> = vec![vec![]; N];
         let mut sub: Vec<u32> = vec![0; N];
-        let mut A: Vec<usize> = self.scan.read_nums();
+        let A: Vec<usize> = self.scan.read_nums();
 
         for i in 1..N {
             let p = self.scan.token::<usize>() - 1;
