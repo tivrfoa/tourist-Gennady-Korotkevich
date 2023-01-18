@@ -64,7 +64,41 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                     b.remove(val);
                     b.remove(i);
                     if Self::win(b, 4, s + a[i] + a[val]) {
-                        return false;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        if k == 4 {
+            let mut mn: Vec<Vec<Vec<usize>>> = vec![vec![vec![n; n]; n]; n];
+            for i in 0..n {
+                for j in 0..n {
+                    for k in 0..n {
+                        let mut val = n;
+                        if i < j && j < k {
+                            for t in k+1..n {
+                                if s >= a[i] + a[j] + a[k] + a[t] {
+                                    val = t;
+                                    break;
+                                }
+                            }
+                        }
+                        mn[i][j][k] = n;
+                        if i > 0  { mn[i][j][k] = mn[i][j][k].min(mn[i - 1][j][k]); }
+                        if j > 0  { mn[i][j][k] = mn[i][j][k].min(mn[i][j - 1][k]); }
+                        if k > 0  { mn[i][j][k] = mn[i][j][k].min(mn[i][j][k - 1]); }
+                        if val < mn[i][j][k] {
+                            mn[i][j][k] = val;
+                            let mut b = a.clone();
+                            b.remove(val);
+                            b.remove(k);
+                            b.remove(j);
+                            b.remove(i);
+                            if Self::win(b, 8, s + a[i] + a[j] + a[k] + a[val]) {
+                                return true;
+                            }
+                        }
                     }
                 }
             }
@@ -72,31 +106,29 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         }
         if k == 8 {
             assert_eq!(24, n);
-            let mut total: i64 = a.iter().sum::<i64>() + s;
+            let total: i64 = a.iter().sum::<i64>() + s;
             let goal = (total + 1) / 2;
             if 2 * s < goal {
                 return false;
             }
             let mut all: Vec<Vec<i64>> = vec![vec![]; 9];
             fn dfs(all: &mut [Vec<i64>], a: &[i64], v: usize, w: usize, sum: i64, s: i64, goal: i64) -> bool {
-                let mut found = false;
-                if found {
-                    return found;
-                }
                 if v == 12 {
                     if sum <= s {
                         if s + sum >= goal {
-                            found = true;
+                            return true;
                         } else {
                             all[w].push(sum);
                         }
                     }
-                    return found;
+                    return false;
                 }
                 if w < 8 {
-                    return dfs(all, a, v + 1, w + 1, sum + a[v], s, goal);
+                    if dfs(all, a, v + 1, w + 1, sum + a[v], s, goal) {
+                        return true;
+                    }
                 }
-                return dfs(all, a, v + 1, w, sum, s, goal);
+                dfs(all, a, v + 1, w, sum, s, goal)
             }
             let found = dfs(&mut all, &a, 0, 0, 0, s, goal);
             if found {
@@ -126,9 +158,11 @@ impl<R: BufRead, W: Write> Solution<R, W> {
             return false;
         }
         if w < 8 {
-            return Self::find(all, a, v + 1, w + 1, sum + a[v], s, goal);
+            if Self::find(all, a, v + 1, w + 1, sum + a[v], s, goal) {
+                return true;
+            }
         }
-        return Self::find(all, a, v + 1, w, sum, s, goal);
+        Self::find(all, a, v + 1, w, sum, s, goal)
     }
 
     fn solve(&mut self) {
