@@ -3,15 +3,23 @@
 
 use std::{
     collections::HashSet,
-    fs::File,
-    io::{self, BufRead, BufReader, BufWriter, StdinLock, StdoutLock, Write},
-    ops::{Add, Sub},
-    str::{self, FromStr},
+        fs::File,
+        io::{self, BufRead, BufReader, BufWriter, StdinLock, StdoutLock, Write},
+        ops::{Add, Sub},
+        str::{self, FromStr},
 };
+use std::slice::Iter;
+
+fn upper_bound(v: &[i64], val: i64) -> Iter<'_, i64> {
+    match v.iter().position(|n| *n > val) {
+        Some(pos) => v[pos..].iter(),
+        None => v[v.len()..].iter(),
+    }
+}
 
 pub struct Solution<R, W: Write> {
-    scan: UnsafeScanner<R>,
-    out: BufWriter<W>,
+scan: UnsafeScanner<R>,
+          out: BufWriter<W>,
 }
 
 impl<R: BufRead, W: Write> Solution<R, W> {
@@ -22,13 +30,142 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         Self { scan, out }
     }
 
-    fn solve(&mut self) {
-        let N: usize = self.scan.token();
-        let mut roads: [Vec<char>; 3] = [vec![], vec![], vec![]];
+    fn win(mut a: Vec<i64>, k: usize, s: i64) -> bool {
+        let n = a.len();
+        if n == k {
+            let opp = a.iter().sum();
+            return s >= opp;
+        }
+        a.sort_by(|a, b| b.cmp(a));
+        if k == 1 {
+            for i in 0..n {
+                if s >= a[i] {
+                    // let mut b = a.clone();
+                    let ai = a[i];
+                    a.drain(i+1..);
+                    return Self::win(a, 2, s + ai);
+                }
+            }
+            return false;
+        }
+        if k == 2 {
+            let mut mn = n;
+            for i in 0..n {
+                let mut val = n;
+                for j in i+1..n {
+                    if s >= a[i] + a[j] {
+                        val = j;
+                        break;
+                    }
+                }
+                if val < mn {
+                    mn = val;
+                    let mut b = a.clone();
+                    b.drain(val+1..);
+                    b.drain(i+1..);
+                    if Self::win(b, 4, s + a[i] + a[val]) {
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+        if k == 8 {
+            assert_eq!(24, n);
+            let mut total: i64 = a.iter().sum::<i64>() + s;
+            let goal = (total + 1) / 2;
+            if 2 * s < goal {
+                return false;
+            }
+            let mut all: Vec<Vec<i64>> = vec![vec![]; 9];
+            fn dfs(all: &mut [Vec<i64>], a: &[i64], v: usize, w: usize, sum: i64, s: i64, goal: i64) -> bool {
+                let mut found = false;
+                if found {
+                    return found;
+                }
+                if v == 12 {
+                    if sum <= s {
+                        if s + sum >= goal {
+                            found = true;
+                        } else {
+                            all[w].push(sum);
+                        }
+                    }
+                    return found;
+                }
+                if w < 8 {
+                    return dfs(all, a, v + 1, w + 1, sum + a[v], s, goal);
+                }
+                return dfs(all, a, v + 1, w, sum, s, goal);
+            }
+            let found = dfs(&mut all, &a, 0, 0, 0, s, goal);
+            if found {
+                return true;
+            }
+            for i in 0..=8 {
+                all[i].sort();
+            }
 
-            writeln!(self.out, "0");
-            return;
-        
+            return Self::find(&all, &a, 12, 0, 0, s, goal);
+        }
+        unreachable!();
+    }
+
+    fn find(all: &[Vec<i64>], a: &[i64], v: usize, w: usize, mut sum: i64, s: i64, goal: i64) -> bool {
+        if v == 24 {
+            let vec = &all[8 - w];
+            let it = upper_bound(&vec, s - sum);
+            if it.len() < vec.len() {
+                if let Some(val) = it.last() {
+                    sum += val;
+                    if s + sum >= goal {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        if w < 8 {
+            return Self::find(all, a, v + 1, w + 1, sum + a[v], s, goal);
+        }
+        return Self::find(all, a, v + 1, w, sum, s, goal);
+    }
+
+    fn solve(&mut self) {
+        let n: usize = self.scan.token();
+        let a: Vec<i64> = self.scan.read_nums();
+        let mut order: Vec<usize> = (0..n).collect();
+        order.sort_by(|i, j| a[*i].cmp(&a[*j]));
+        let mut low: i32 = -1;
+        let mut high: i32 = n as i32 - 1;
+        while low + 1 < high {
+            let mid: i32 = (low + high) >> 1;
+            let mut b = a.clone();
+            b.drain(order[mid as usize]+1..);
+            if Self::win(b, 1, a[order[mid as usize]]) {
+                high = mid;
+            } else {
+                low = mid;
+            }
+        }
+        let mut res: Vec<char> = vec!['0'; n];
+        for i in high as usize..n {
+            res[order[i]] = '1';
+        }
+
+        writeln!(self.out, "{}", res.into_iter().collect::<String>());
+        return;
+
+    }
+}
+
+trait Cpp {
+    fn erase(self, n: usize) -> Vec<i64>;
+}
+
+impl Cpp for Vec<i64> {
+    fn erase(self, n: usize) -> Vec<i64> {
+        self.into_iter().skip(n).collect()
     }
 }
 
@@ -37,11 +174,15 @@ fn main() {
     let writer = io::stdout().lock();
     let mut solution: Solution<StdinLock, StdoutLock> = Solution::new(reader, writer);
 
-    let t = solution.scan.token::<usize>();
-    for _ in 0..t {
-        solution.solve();
-    }
+    solution.solve();
 }
+
+#[test]
+#[ignore]
+fn test_interactive() {
+    main();
+}
+
 
 #[test]
 fn test_sample() {
@@ -55,12 +196,6 @@ fn test_sample() {
     for _ in 0..t {
         solution.solve();
     }
-}
-
-#[test]
-#[ignore]
-fn test_interactive() {
-    main();
 }
 
 #[allow(dead_code)]
@@ -89,17 +224,17 @@ fn get_3_nums<T: str::FromStr>(scan: &mut UnsafeScanner<io::StdinLock>) -> (T, T
 }
 
 pub struct UnsafeScanner<R> {
-    reader: R,
-    buf_str: Vec<u8>,
-    buf_iter: str::SplitAsciiWhitespace<'static>,
+reader: R,
+            buf_str: Vec<u8>,
+            buf_iter: str::SplitAsciiWhitespace<'static>,
 }
 
 impl<R: io::BufRead> UnsafeScanner<R> {
     pub fn new(reader: R) -> Self {
         Self {
             reader,
-            buf_str: vec![],
-            buf_iter: "".split_ascii_whitespace(),
+                buf_str: vec![],
+                buf_iter: "".split_ascii_whitespace(),
         }
     }
 
@@ -122,10 +257,10 @@ impl<R: io::BufRead> UnsafeScanner<R> {
         self.read_line()
             .split_ascii_whitespace()
             .map(|n| match n.parse::<T>() {
-                Ok(n) => n,
-                Err(_) => panic!("invalid number {n}"),
-            })
-            .collect()
+                    Ok(n) => n,
+                    Err(_) => panic!("invalid number {n}"),
+                    })
+        .collect()
     }
 
     pub fn token<T: str::FromStr>(&mut self) -> T {
