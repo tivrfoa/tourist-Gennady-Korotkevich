@@ -42,7 +42,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                 if s >= a[i] {
                     // let mut b = a.clone();
                     let ai = a[i];
-                    a.drain(i+1..);
+                    a = a.erase(i);
                     return Self::win(a, 2, s + ai);
                 }
             }
@@ -61,8 +61,8 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                 if val < mn {
                     mn = val;
                     let mut b = a.clone();
-                    b.drain(val+1..);
-                    b.drain(i+1..);
+                    b = b.erase(val);
+                    b = b.erase(i);
                     if Self::win(b, 4, s + a[i] + a[val]) {
                         return false;
                     }
@@ -140,8 +140,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         let mut high: i32 = n as i32 - 1;
         while low + 1 < high {
             let mid: i32 = (low + high) >> 1;
-            let mut b = a.clone();
-            b.drain(order[mid as usize]+1..);
+            let b = a.clone().erase(order[mid as usize]);
             if Self::win(b, 1, a[order[mid as usize]]) {
                 high = mid;
             } else {
