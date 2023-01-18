@@ -42,7 +42,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                 if s >= a[i] {
                     // let mut b = a.clone();
                     let ai = a[i];
-                    a = a.erase(i);
+                    a.remove(i);
                     return Self::win(a, 2, s + ai);
                 }
             }
@@ -61,8 +61,8 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                 if val < mn {
                     mn = val;
                     let mut b = a.clone();
-                    b = b.erase(val);
-                    b = b.erase(i);
+                    b.remove(val);
+                    b.remove(i);
                     if Self::win(b, 4, s + a[i] + a[val]) {
                         return false;
                     }
@@ -140,7 +140,8 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         let mut high: i32 = n as i32 - 1;
         while low + 1 < high {
             let mid: i32 = (low + high) >> 1;
-            let b = a.clone().erase(order[mid as usize]);
+            let mut b = a.clone();
+            b.remove(order[mid as usize]);
             if Self::win(b, 1, a[order[mid as usize]]) {
                 high = mid;
             } else {
@@ -155,16 +156,6 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         writeln!(self.out, "{}", res.into_iter().collect::<String>());
         return;
 
-    }
-}
-
-trait Cpp {
-    fn erase(self, n: usize) -> Vec<i64>;
-}
-
-impl Cpp for Vec<i64> {
-    fn erase(self, n: usize) -> Vec<i64> {
-        self.into_iter().skip(n).collect()
     }
 }
 
