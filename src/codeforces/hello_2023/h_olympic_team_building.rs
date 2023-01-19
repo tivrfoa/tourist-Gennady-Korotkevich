@@ -146,14 +146,20 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     fn find(all: &[Vec<i64>], a: &[i64], v: usize, w: usize, mut sum: i64, s: i64, goal: i64) -> bool {
         if v == 24 {
             let vec = &all[8 - w];
-            let it = upper_bound(&vec, s - sum);
-            if it.len() < vec.len() {
-                if let Some(val) = it.last() {
-                    sum += val;
-                    if s + sum >= goal {
-                        return true;
+            match vec.iter().position(|n| *n > s - sum) {
+                Some(pos) => {
+                    if pos > 0 {
+                        sum += vec[pos - 1];
                     }
                 }
+                None => {
+                    if vec.len() > 0 {
+                        sum += vec[vec.len() - 1];
+                    }
+                }
+            }
+            if s + sum >= goal {
+                return true;
             }
             return false;
         }
@@ -188,8 +194,6 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         }
 
         writeln!(self.out, "{}", res.into_iter().collect::<String>());
-        return;
-
     }
 }
 
