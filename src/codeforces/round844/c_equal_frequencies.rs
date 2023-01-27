@@ -1,3 +1,5 @@
+// Original C++ solution: https://codeforces.com/blog/entry/111783
+
 use std::slice::Iter;
 use std::{
     collections::HashSet,
@@ -12,42 +14,21 @@ pub struct Solution<R, W: Write> {
     out: BufWriter<W>,
 }
 
-/*
-
-If length is odd, then all letters should be different, or all letters
-should be equal!!!
-
-1) aabbccdddddd
-
-a) aaabbbcccddd -> changed 6 places
-b) aabbccddeeff -> changed 4 places
-
-
-2) aadbbdccdddd
-
-
-If some letter has a high frequency, we should update some of
-its ocurrences with new letters ...
-
-
-3) aaaaada -> just 1 one change and make everything same letter 'a'
-
-In this case, the frequency was the string length
-
-4) aaaaaaaaaaabcde -> it's better to make everything 'a'
-
-
-5) aabbcccc -> aaaacccc
-
-*/
-
-trait CharSub {
+trait CharOp {
     fn sub(&self, other: Self) -> u8;
+    fn addu8(&self, i: u8) -> char;
+    fn addusize(&self, i: usize) -> char;
 }
 
-impl CharSub for char {
+impl CharOp for char {
     fn sub(&self, other: Self) -> u8 {
         *self as u8 - other as u8
+    }
+    fn addu8(&self, i: u8) -> char {
+        (*self as u8 + i) as char
+    }
+    fn addusize(&self, i: usize) -> char {
+        (*self as u8 + i as u8) as char
     }
 }
 
@@ -60,23 +41,52 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     }
 
     fn solve(&mut self) {
-        let n: u32 = self.scan.token();
+        let n: usize = self.scan.token();
         let s = self.scan.token::<String>();
         let mut ss: Vec<char> = s.chars().collect();
-        let mut freq: [u32; 26] = [0; 26];
+        let mut at: Vec<Vec<usize>> = vec![vec![]; 26];
 
-        for s in &ss {
-            freq[s.sub('a') as usize] += 1;
+        for i in 0..n {
+            at[ss[i].sub('a') as usize].push(i);
+        }
+        let mut order: Vec<usize> = (0..26).collect();
+        order.sort_by(|a, b| at[*b].len().cmp(&at[*a].len()));
+        let mut res: Vec<char> = vec![];
+        let mut best: i32 = -1;
+        for cnt in 1..=26 {
+            if n % cnt != 0 {
+                continue;
+            }
+            let mut cur: i32 = 0;
+            for i in 0..cnt {
+                cur += ((n / cnt).min(at[order[i]].len())) as i32;
+            }
+            if cur <= best {
+                continue;
+            }
+            best = cur;
+            res = vec![' '; n];
+            let mut extra: Vec<char> = vec![];
+            for it in 0..cnt {
+                let i = order[it];
+                for j in 0..n /cnt {
+                    if j < at[i].len() {
+                        res[at[i][j]] = 'a'.addusize(i);
+                    } else {
+                        extra.push('a'.addusize(i));
+                    }
+                }
+            }
+            for c in res.iter_mut() {
+                if *c == ' ' {
+                    *c = extra.pop().unwrap();
+                }
+            }
         }
 
-        //dbg!(&s);
-        //dbg!(&freq);
-
-        let (max_freq_idx, max_freq) = freq.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
-        dbg!(&max_freq);
-
-        todo!()
-        // writeln!(self.out, "{}", s);
+        writeln!(self.out, "{}\n{}",
+                n as i32 - best,
+                res.into_iter().collect::<String>());
     }
 }
 
