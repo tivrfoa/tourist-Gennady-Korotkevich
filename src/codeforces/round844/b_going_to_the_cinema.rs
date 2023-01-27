@@ -21,17 +21,28 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     }
 
     fn solve(&mut self) {
-        let (w, d, h) = self.scan.get_3_nums::<i32>();
-        let (a, b, f, g) = self.scan.get_4_nums::<i32>();
+        let n: usize = self.scan.token();
+        let mut a: Vec<usize> = self.scan.read_nums();
+        a.sort();
+        let mut qt = 0;
+        let mut i = 0;
+        while i < n {
+            if i == n - 1 {
+                if a[i] <= i {
+                    qt += 1;
+                }
+            } else {
+                if a[i] != a[i + 1] && a[i] <= i && i + 1 < a[i + 1] {
+                    qt += 1;
+                }
+            }
 
-        let east = f + h + a + (b - g).abs();
-        let west = w - f + h + w - a + (b - g).abs();
-        let south = g + h + b + (a - f).abs();
-        let north = d - g + h + d - b + (a - f).abs();
+            i += 1;
+        }
 
-        let ans = east.min(west.min(south.min(north)));
+        if a[0] > 0 { qt += 1; }
 
-        writeln!(self.out, "{}", ans);
+        writeln!(self.out, "{}", qt);
     }
 }
 
@@ -56,9 +67,9 @@ fn test_interactive() {
 
 #[test]
 fn test_sample() {
-    let fr = File::open("tests_in_out/codeforces/round844/a.in").unwrap();
+    let fr = File::open("tests_in_out/codeforces/round844/b.in").unwrap();
     let fr = BufReader::new(fr);
-    let out_file = File::create("tests_in_out/codeforces/round844/a.out").unwrap();
+    let out_file = File::create("tests_in_out/codeforces/round844/b.out").unwrap();
     let mut solution = Solution::new(fr, out_file);
 
     let t = solution.scan.token::<usize>();
