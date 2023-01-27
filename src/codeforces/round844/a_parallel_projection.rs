@@ -1,6 +1,3 @@
-// tourist solution
-// https://codeforces.com/contest/1779/submission/187822306
-
 use std::{
     collections::HashSet,
         fs::File,
