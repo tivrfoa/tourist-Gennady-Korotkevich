@@ -12,6 +12,45 @@ pub struct Solution<R, W: Write> {
     out: BufWriter<W>,
 }
 
+/*
+
+If length is odd, then all letters should be different, or all letters
+should be equal!!!
+
+1) aabbccdddddd
+
+a) aaabbbcccddd -> changed 6 places
+b) aabbccddeeff -> changed 4 places
+
+
+2) aadbbdccdddd
+
+
+If some letter has a high frequency, we should update some of
+its ocurrences with new letters ...
+
+
+3) aaaaada -> just 1 one change and make everything same letter 'a'
+
+In this case, the frequency was the string length
+
+4) aaaaaaaaaaabcde -> it's better to make everything 'a'
+
+
+5) aabbcccc -> aaaacccc
+
+*/
+
+trait CharSub {
+    fn sub(&self, other: Self) -> u8;
+}
+
+impl CharSub for char {
+    fn sub(&self, other: Self) -> u8 {
+        *self as u8 - other as u8
+    }
+}
+
 impl<R: BufRead, W: Write> Solution<R, W> {
     fn new(reader: R, writer: W) -> Self {
         let scan = UnsafeScanner::new(reader);
@@ -21,30 +60,23 @@ impl<R: BufRead, W: Write> Solution<R, W> {
     }
 
     fn solve(&mut self) {
-        let n: usize = self.scan.token();
-        let mut a: Vec<usize> = self.scan.read_nums();
-        a.sort();
-        let mut qt = 0;
-        let mut i = 0;
-        while i < n {
-            if i == n - 1 {
-                if a[i] <= i {
-                    qt += 1;
-                }
-            } else {
-                if a[i] != a[i + 1] && a[i] <= i && i + 1 < a[i + 1] {
-                    qt += 1;
-                }
-            }
+        let n: u32 = self.scan.token();
+        let s = self.scan.token::<String>();
+        let mut ss: Vec<char> = s.chars().collect();
+        let mut freq: [u32; 26] = [0; 26];
 
-            i += 1;
+        for s in &ss {
+            freq[s.sub('a') as usize] += 1;
         }
 
-        if a[0] > 0 {
-            qt += 1;
-        }
+        //dbg!(&s);
+        //dbg!(&freq);
 
-        writeln!(self.out, "{}", qt);
+        let (max_freq_idx, max_freq) = freq.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
+        dbg!(&max_freq);
+
+        todo!()
+        // writeln!(self.out, "{}", s);
     }
 }
 
@@ -68,9 +100,9 @@ fn test_interactive() {
 
 #[test]
 fn test_sample() {
-    let fr = File::open("tests_in_out/codeforces/round844/b.in").unwrap();
+    let fr = File::open("tests_in_out/codeforces/round844/c.in").unwrap();
     let fr = BufReader::new(fr);
-    let out_file = File::create("tests_in_out/codeforces/round844/b.out").unwrap();
+    let out_file = File::create("tests_in_out/codeforces/round844/c.out").unwrap();
     let mut solution = Solution::new(fr, out_file);
 
     let t = solution.scan.token::<usize>();
