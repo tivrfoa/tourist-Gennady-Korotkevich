@@ -26,7 +26,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         let n: usize = self.scan.token();
         let a: Vec<u64> = self.scan.read_nums();
         let mut ans = 1;
-        let test = |x: u64| -> u64 {
+        let test = |ans: u64, x: u64| -> u64 {
             let mut cnt = 0;
             for v in &a {
                 let u = ((v + x) as f64).sqrt().round() as u64;
@@ -46,7 +46,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                         if q % 2 == 0 {
                             q /= 2;
                             if q * q  >= a[j] {
-                                ans = test(q * q - a[j]);
+                                ans = test(ans, q * q - a[j]);
                             }
                         }
                     }
