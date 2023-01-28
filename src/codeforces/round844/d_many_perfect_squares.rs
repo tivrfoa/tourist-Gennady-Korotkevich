@@ -14,6 +14,11 @@ pub struct Solution<R, W: Write> {
     out: BufWriter<W>,
 }
 
+fn is_perfect_square(v: u64) -> bool {
+    let u = (v as f64).sqrt().round() as u64;
+    u * u == v
+}
+
 impl<R: BufRead, W: Write> Solution<R, W> {
     fn new(reader: R, writer: W) -> Self {
         let scan = UnsafeScanner::new(reader);
@@ -26,15 +31,14 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         let n: usize = self.scan.token();
         let a: Vec<u64> = self.scan.read_nums();
         let mut ans = 1;
-        let test = |ans: u64, x: u64| -> u64 {
+        let test = |x: u64| -> u64 {
             let mut cnt = 0;
             for v in &a {
-                let u = ((v + x) as f64).sqrt().round() as u64;
-                if u * u == v + x {
+                if is_perfect_square(v + x) {
                     cnt += 1;
                 }
             }
-            ans.max(cnt)
+            cnt
         };
         for i in 0..n {
             for j in i+1..n {
@@ -46,7 +50,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                         if q % 2 == 0 {
                             q /= 2;
                             if q * q  >= a[j] {
-                                ans = test(ans, q * q - a[j]);
+                                ans = ans.max(test(q * q - a[j]));
                             }
                         }
                     }
