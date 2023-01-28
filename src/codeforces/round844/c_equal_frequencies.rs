@@ -66,7 +66,7 @@ impl<R: BufRead, W: Write> Solution<R, W> {
             }
             best = cur;
             res = vec![' '; n];
-            let mut extra: Vec<char> = vec![];
+            let mut extra: Vec<char> = Vec::with_capacity(n - best as usize);
             for it in 0..cnt {
                 let i = order[it];
                 for j in 0..n /cnt {
@@ -77,9 +77,11 @@ impl<R: BufRead, W: Write> Solution<R, W> {
                     }
                 }
             }
+            let mut idx = 0;
             for c in res.iter_mut() {
                 if *c == ' ' {
-                    *c = extra.pop().unwrap();
+                    *c = extra[idx];
+                    idx += 1;
                 }
             }
         }
