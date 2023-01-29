@@ -2,7 +2,7 @@
 
 use std::slice::Iter;
 use std::{
-    collections::HashSet,
+    collections::{BTreeSet, HashMap, HashSet},
     fs::File,
     io::{self, BufRead, BufReader, BufWriter, StdinLock, StdoutLock, Write},
     ops::{Add, Sub},
@@ -12,11 +12,6 @@ use std::{
 pub struct Solution<R, W: Write> {
     scan: UnsafeScanner<R>,
     out: BufWriter<W>,
-}
-
-fn is_perfect_square(v: u64) -> bool {
-    let u = (v as f64).sqrt().round() as u64;
-    u * u == v
 }
 
 impl<R: BufRead, W: Write> Solution<R, W> {
@@ -29,38 +24,73 @@ impl<R: BufRead, W: Write> Solution<R, W> {
 
     fn solve(&mut self) {
         let n: usize = self.scan.token();
-        let a: Vec<u64> = self.scan.read_nums();
-        let mut ans = 1;
-        let test = |x: u64| -> u64 {
-            let mut cnt = 0;
-            for v in &a {
-                if is_perfect_square(v + x) {
-                    cnt += 1;
+        let mut r1: Vec<i32> = vec![0; n];
+        let mut c1: Vec<i32> = vec![0; n];
+        let mut r2: Vec<i32> = vec![0; n];
+        let mut c2: Vec<i32> = vec![0; n];
+        for i in 0..n {
+            r1[i] = self.scan.token();
+            c1[i] = self.scan.token::<i32>() - 1;
+            r2[i] = self.scan.token();
+            c2[i] = self.scan.token();
+        }
+        let mut order: Vec<usize> = (0..n).collect();
+        order.sort_by(|a, b| c1[*a].cmp(&c1[*b]));
+        let mut s: BTreeSet<(i32, usize)> = BTreeSet::new();
+        let mut ans = 0;
+        let mut p1 = -1;
+        let mut p2 = -1;
+        for i in order {
+            if r1[i] == 1 && r2[i] == 2 {
+                if p1 >= c2[i] {
+                    r1[i] = 2;
+                }
+                if p2 >= c2[i] {
+                    r2[i] = 1;
+                }
+                if r1[i] > r2[i] {
+                    continue;
                 }
             }
-            cnt
-        };
-        for i in 0..n {
-            for j in i+1..n {
-                let diff = a[j] - a[i];
-                let mut k = 1;
-                while k * k <= diff {
-                    if diff % k == 0 {
-                        let mut q = k + diff / k;
-                        if q % 2 == 0 {
-                            q /= 2;
-                            if q * q  >= a[j] {
-                                ans = ans.max(test(q * q - a[j]));
-                            }
-                        }
+            if r1[i] == 1 && r2[i] == 2 {
+                while !s.is_empty() {
+                    let it = s.last().unwrap().clone();
+                    if it.0 >= c1[i] {
+                        c2[it.1] = c1[i];
+                        s.remove(&it);
+                    } else {
+                        break;
                     }
-
-                    k += 1;
                 }
+                ans += (c2[i] - c1[i].max(p1)) + (c2[i] - c1[i].max(p2));
+                p1 = c2[i];
+                p2 = c2[i];
+                s.insert((c2[i], i));
+                continue;
+            }
+            assert!(r1[i] == r2[i]);
+            if r1[i] == 1 {
+                c1[i] = c1[i].max(p1);
+                p1 = p1.max(c2[i]);
+            } else {
+                c1[i] = c1[i].max(p2);
+                p2 = p2.max(c2[i]);
+            }
+            if c1[i] < c2[i] {
+                ans += c2[i] - c1[i];
+                s.insert((c2[i], i));
             }
         }
 
         writeln!(self.out, "{}", ans);
+        for i in 0..n {
+            c1[i] += 1;
+            if r1[i] <= r2[i] && c1[i] <= c2[i] {
+                writeln!(self.out, "{} {} {} {}", r1[i], c1[i], r2[i], c2[i]);
+            } else {
+                writeln!(self.out, "0 0 0 0");
+            }
+        }
     }
 }
 
@@ -170,6 +200,11 @@ impl CharOp for char {
     fn addusize(&self, i: usize) -> char {
         (*self as u8 + i as u8) as char
     }
+}
+
+fn is_perfect_square(v: u64) -> bool {
+    let u = (v as f64).sqrt().round() as u64;
+    u * u == v
 }
 
 fn main() {
