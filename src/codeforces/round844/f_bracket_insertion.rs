@@ -24,26 +24,26 @@ impl<R: BufRead, W: Write> Solution<R, W> {
 
     fn solve(&mut self) {
         let n: usize = self.scan.token();
-        let mut p: i32 = self.scan.token();
-        p /= 10000;
-        let mut C: Vec<Vec<i32>> = vec![vec![0; n + 1]; n + 1];
+        let mut p: f64 = self.scan.token();
+        p /= 10000.0;
+        let mut C: Vec<Vec<f64>> = vec![vec![0.0; n + 1]; n + 1];
         for i in 0..=n {
-            C[i][0] = 1;
+            C[i][0] = 1.0;
             for j in 1..=i {
                 C[i][j] = C[i - 1][j] + C[i - 1][j - 1];
             }
         }
 
-        let mut dp: Vec<Vec<i32>> = vec![vec![0; n + 1]; n + 1];
-        let mut aux: Vec<Vec<i32>> = vec![vec![0; n + 1]; n + 1];
+        let mut dp: Vec<Vec<f64>> = vec![vec![0.0; n + 1]; n + 1];
+        let mut aux: Vec<Vec<f64>> = vec![vec![0.0; n + 1]; n + 1];
         for b in 0..=n {
-            (dp[0][b], aux[0][b]) = (1, 1);
+            (dp[0][b], aux[0][b]) = (1.0, 1.0);
         }
         for i in 1..=n {
             for b in 0..= n - i {
                 for y in 0..= i - 1 {
                     dp[i][b] += C[i - 1][y] * aux[i - 1 - y][b] *
-                        (dp[y][b + 1] * p + (if b == 0 { 0 } else { dp[y][b - 1] * (1 - p) }));
+                        (dp[y][b + 1] * p + (if b == 0 { 0.0 } else { dp[y][b - 1] * (1.0 - p) }));
                 }
                 for j in 0..=i {
                     aux[i][b] += dp[j][b] * dp[i - j][b] * C[i][j];
@@ -51,8 +51,8 @@ impl<R: BufRead, W: Write> Solution<R, W> {
             }
         }
         let mut ans = dp[n][0];
-        for i in (1..=2 * n as i32).step_by(2) {
-            ans /= i;
+        for i in (1..=2 * n).step_by(2) {
+            ans /= i as f64;
         }
 
         writeln!(self.out, "{}", ans);
