@@ -42,24 +42,43 @@ impl<R: BufRead, W: Write> Solution<R, W> {
         for i in 1..=n {
             for b in 0..= n - i {
                 for y in 0..= i - 1 {
-                    dp[i][b] += C[i - 1][y] * aux[i - 1 - y][b] *
-                        (dp[y][b + 1] * p + (if b == 0 { 0.0 } else { dp[y][b - 1] * (1.0 - p) }));
+                    dp[i][b] += (C[i - 1][y] * aux[i - 1 - y][b]) % MOD *
+                        (((dp[y][b + 1] * p) % MOD) +
+                        (if b == 0 {
+                            0.0
+                        } else {
+                            (dp[y][b - 1] * (1.0 - p)) % MOD
+                        }));
+                    dp[i][b] %= MOD;
                 }
                 for j in 0..=i {
-                    aux[i][b] += dp[j][b] * dp[i - j][b] * C[i][j];
+                    aux[i][b] += ((dp[j][b] * dp[i - j][b]) % MOD * C[i][j]) % MOD;
+                    aux[i][b] %= MOD;
                 }
             }
         }
         let mut ans = dp[n][0];
         for i in (1..=2 * n).step_by(2) {
-            ans /= i as f64;
+            // ans /= i as f64;
+            ans *= inversef64(i as f64, ans);
         }
 
         writeln!(self.out, "{}", ans);
     }
 }
 
-const MOD: i32 = 998244353;
+const MOD: f64 = 998244353.0;
+
+fn inversef64(mut a: f64, mut m: f64) -> f64 {
+    let (mut u, mut v) = (0.0, 1.0);
+    while a != 0.0 {
+        let t = m / a;
+        m -= t * a; std::mem::swap(&mut a, &mut m);
+        u -= t * v; std::mem::swap(&mut u, &mut v);
+    }
+    assert_eq!(m, 1.0);
+    u
+}
 
 
 fn inverse(mut a: i32, mut m: i32) -> i32 {
